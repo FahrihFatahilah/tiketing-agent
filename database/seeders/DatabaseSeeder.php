@@ -21,14 +21,14 @@ class DatabaseSeeder extends Seeder
             Role::firstOrCreate(['name' => $role, 'guard_name' => 'web']);
         }
 
-        // Users
-        $admin = User::factory()->create(['name' => 'Admin', 'email' => 'admin@pomuliajaya.com', 'password' => bcrypt('password')]);
+        // Users — pakai create() langsung, bukan factory(), agar tidak butuh fakerphp di production
+        $admin = User::create(['name' => 'Admin', 'email' => 'admin@pomuliajaya.com', 'password' => bcrypt('password')]);
         $admin->assignRole('admin');
 
-        $pengurus = User::factory()->create(['name' => 'Pengurus', 'email' => 'staff@pomuliajaya.com', 'password' => bcrypt('password')]);
+        $pengurus = User::create(['name' => 'Pengurus', 'email' => 'staff@pomuliajaya.com', 'password' => bcrypt('password')]);
         $pengurus->assignRole('pengurus');
 
-        $agen = User::factory()->create(['name' => 'Agen Mataram', 'email' => 'agen@pomuliajaya.com', 'password' => bcrypt('password')]);
+        $agen = User::create(['name' => 'Agen Mataram', 'email' => 'agen@pomuliajaya.com', 'password' => bcrypt('password')]);
         $agen->assignRole('agen');
 
         // Routes

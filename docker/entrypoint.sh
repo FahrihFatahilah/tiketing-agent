@@ -13,6 +13,7 @@ php /var/www/artisan config:clear
 php /var/www/artisan route:clear
 php /var/www/artisan view:clear
 php /var/www/artisan cache:clear
+php /var/www/artisan optimize
 
 # Run migrations
 php /var/www/artisan migrate --force

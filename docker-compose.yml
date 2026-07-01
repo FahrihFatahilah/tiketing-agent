@@ -26,6 +26,8 @@ services:
       - SESSION_DRIVER=file
       - CACHE_STORE=file
       - QUEUE_CONNECTION=database
+      - TRUSTED_PROXIES=*
+      - TRUSTED_HOSTS=*
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.agent-bus.rule=Host(`agent-muliajaya.ffatahilah.my.id`)"
