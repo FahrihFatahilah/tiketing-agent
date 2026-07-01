@@ -1,49 +1,69 @@
-FROM php:8.3-fpm-alpine
+FROM php:8.2-fpm
 
-# System deps
-RUN apk add --no-cache \
-    nginx \
-    nodejs \
-    npm \
-    supervisor \
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    git \
     curl \
     libpng-dev \
+    libonig-dev \
+    libxml2-dev \
     libzip-dev \
-    oniguruma-dev \
-    && docker-php-ext-install pdo_mysql mbstring zip gd opcache
+    zip \
+    unzip \
+    sqlite3 \
+    libsqlite3-dev \
+    nginx \
+    supervisor \
+    netcat-openbsd \
+    nano
 
-# Composer
-COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
+# Clear cache
+RUN apt-get clean && rm -rf /var/lib/apt/lists/*
 
-WORKDIR /var/www/html
+# Install PHP extensions
+RUN docker-php-ext-install pdo_mysql pdo_sqlite mbstring exif pcntl bcmath gd zip
 
-# Install PHP deps
-COPY composer.json composer.lock ./
-RUN composer install --no-dev --no-scripts --no-autoloader --prefer-dist
+# Get latest Composer
+COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
-# Install JS deps & build assets
-COPY package.json package-lock.json ./
-RUN npm ci
+# Set working directory
+WORKDIR /var/www
 
-COPY . .
+# Copy application
+COPY . /var/www
+COPY --chown=www-data:www-data . /var/www
 
-RUN composer dump-autoload --optimize \
+# Install PHP dependencies
+RUN composer install --optimize-autoloader --no-dev --ignore-platform-reqs
+
+# Install Node & build frontend assets
+RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
+    && apt-get install -y nodejs \
+    && npm ci \
     && npm run build \
     && rm -rf node_modules
 
-# Permissions
-RUN chown -R www-data:www-data storage bootstrap/cache \
-    && chmod -R 775 storage bootstrap/cache
+# Copy nginx config
+COPY docker/nginx.conf /etc/nginx/sites-available/default
 
-# Nginx config
-COPY docker/nginx.conf /etc/nginx/nginx.conf
-
-# Supervisor config
+# Copy supervisor config
 COPY docker/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 
-# Opcache config
-COPY docker/opcache.ini /usr/local/etc/php/conf.d/opcache.ini
+# Create storage directories and set permissions
+RUN mkdir -p /var/www/storage/logs \
+    && mkdir -p /var/www/storage/framework/cache \
+    && mkdir -p /var/www/storage/framework/sessions \
+    && mkdir -p /var/www/storage/framework/views \
+    && mkdir -p /var/www/bootstrap/cache \
+    && chown -R www-data:www-data /var/www/storage \
+    && chown -R www-data:www-data /var/www/bootstrap/cache \
+    && chmod -R 775 /var/www/storage \
+    && chmod -R 775 /var/www/bootstrap/cache
+
+# Copy entrypoint script
+COPY docker/entrypoint.sh /usr/local/bin/entrypoint.sh
+RUN chmod +x /usr/local/bin/entrypoint.sh
 
 EXPOSE 80
 
-CMD ["/usr/bin/supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf"]
+ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
