@@ -21,12 +21,17 @@
     </style>
 </head>
 <body class="h-full bg-slate-50 text-slate-900 antialiased">
-<div class="flex h-full min-h-screen">
+<div x-data="{ sidebarOpen: false }" class="flex h-full min-h-screen">
+
+    {{-- Mobile overlay --}}
+    <div x-show="sidebarOpen" @click="sidebarOpen = false"
+         class="fixed inset-0 z-20 bg-black/40 lg:hidden" x-cloak></div>
 
     {{-- Sidebar --}}
-    <aside class="w-60 shrink-0 bg-white border-r border-slate-200 flex flex-col">
+    <aside :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full'"
+           class="fixed inset-y-0 left-0 z-30 w-60 bg-white border-r border-slate-200 flex flex-col transition-transform duration-200 lg:relative lg:translate-x-0 lg:flex">
         <div class="h-14 flex items-center px-5 border-b border-slate-200">
-            <span class="font-semibold text-slate-900 tracking-tight">🚌 Agent Bus</span>
+            <span class="font-semibold text-slate-900 tracking-tight">Agent Muliajaya</span>
         </div>
 
         <nav class="flex-1 px-3 py-4 space-y-0.5 overflow-y-auto">
@@ -85,12 +90,17 @@
     </aside>
 
     {{-- Main --}}
-    <div class="flex-1 flex flex-col min-w-0">
-        <header class="h-14 bg-white border-b border-slate-200 flex items-center px-6 shrink-0">
+    <div class="flex-1 flex flex-col min-w-0 lg:ml-0">
+        <header class="h-14 bg-white border-b border-slate-200 flex items-center px-4 shrink-0 gap-3">
+            <button @click="sidebarOpen = true" class="lg:hidden p-1.5 rounded-md text-slate-500 hover:bg-slate-100">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+                </svg>
+            </button>
             <h1 class="text-sm font-semibold text-slate-900">{{ $title ?? 'Dashboard' }}</h1>
         </header>
 
-        <main class="flex-1 p-6 overflow-y-auto">
+        <main class="flex-1 p-4 sm:p-6 overflow-y-auto">
             @if(session('success'))
                 <div x-data="{ show: true }" x-show="show" x-init="setTimeout(() => show = false, 4000)"
                      class="mb-4 flex items-center gap-2 bg-emerald-50 border border-emerald-200 text-emerald-800 text-sm px-4 py-3 rounded-lg">

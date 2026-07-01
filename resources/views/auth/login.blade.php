@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login — Agent Bus</title>
+    <title>Login — Muliajaya</title>
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=inter:400,500,600&display=swap" rel="stylesheet">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
@@ -18,7 +18,7 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2 10h20M7 19v2M17 19v2"/>
                 </svg>
             </div>
-            <h1 class="text-xl font-semibold text-slate-900">Agent Bus</h1>
+            <h1 class="text-xl font-semibold text-slate-900">Agent Muliajaya</h1>
             <p class="text-sm text-slate-500 mt-1">Sistem Manajemen Penumpang</p>
         </div>
 

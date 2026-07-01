@@ -2,13 +2,13 @@
     <x-slot name="title">Manajemen Rute</x-slot>
 
     <div class="space-y-5" x-data="{ showForm: false, editItem: null }">
-        <div class="flex justify-between items-center">
+        <div class="flex flex-wrap justify-between items-center gap-3">
             <p class="text-sm text-slate-500">{{ $routes->count() }} rute</p>
             <x-button @click="showForm = true; editItem = null">+ Tambah Rute</x-button>
         </div>
 
-        <x-card>
-            <table class="w-full text-sm">
+        <x-card class="overflow-x-auto">
+            <table class="w-full text-sm min-w-[500px]">
                 <thead>
                     <tr class="border-b border-slate-100">
                         <th class="text-left px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wide">Nama Rute</th>

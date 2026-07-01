@@ -7,7 +7,7 @@
         <x-card class="p-4">
             <form method="POST" action="{{ route('trips.store') }}" class="flex flex-wrap gap-3 items-end">
                 @csrf
-                <x-select label="Jadwal" name="schedule_id" class="w-48">
+                <x-select label="Jadwal" name="schedule_id" class="w-full sm:w-48">
                     <option value="">Pilih jadwal...</option>
                     @foreach($schedules as $s)
                         <option value="{{ $s->id }}" {{ $trip && $trip->schedule_id == $s->id ? 'selected' : '' }}>
@@ -18,9 +18,9 @@
 
                 <x-input label="Tanggal" type="date" name="tanggal"
                          value="{{ $trip ? $trip->tanggal_berangkat->format('Y-m-d') : today()->format('Y-m-d') }}"
-                         class="w-40" />
+                         class="w-full sm:w-40" />
 
-                <x-select label="Armada" name="bus_id" class="w-44">
+                <x-select label="Armada" name="bus_id" class="w-full sm:w-44">
                     <option value="">Pilih armada...</option>
                     @foreach($buses as $b)
                         <option value="{{ $b->id }}" {{ $trip && $trip->bus_id == $b->id ? 'selected' : '' }}>
@@ -56,7 +56,7 @@
                 $filled = $occupiedSeats->count();
                 $empty = $capacity - $filled;
             @endphp
-            <div class="flex items-center gap-4 flex-wrap">
+            <div class="flex items-center gap-3 flex-wrap">
                 <x-card class="px-4 py-3 flex items-center gap-3">
                     <div class="w-3 h-3 rounded-sm bg-emerald-500"></div>
                     <span class="text-sm text-slate-600">Terisi: <strong class="text-slate-900">{{ $filled }}</strong></span>

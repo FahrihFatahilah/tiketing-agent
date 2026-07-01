@@ -3,7 +3,7 @@
 
     <div class="space-y-5">
         {{-- Filter --}}
-        <form method="GET" class="flex items-end gap-3">
+        <form method="GET" class="flex flex-wrap items-end gap-3">
             <div class="space-y-1">
                 <label class="block text-sm font-medium text-slate-700">Bulan</label>
                 <input type="month" name="bulan" value="{{ $bulan }}"
@@ -24,7 +24,7 @@
             @endphp
 
             {{-- Summary --}}
-            <div class="grid grid-cols-3 gap-4">
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <x-card class="px-4 py-3">
                     <p class="text-xs text-slate-500">Total Trip</p>
                     <p class="text-2xl font-semibold text-slate-900 mt-0.5">{{ $trips->count() }}</p>
@@ -39,8 +39,8 @@
                 </x-card>
             </div>
 
-            <x-card>
-                <table class="w-full text-sm">
+            <x-card class="overflow-x-auto">
+                <table class="w-full text-sm min-w-[600px]">
                     <thead>
                         <tr class="border-b border-slate-100">
                             <th class="text-left px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wide">Tanggal</th>

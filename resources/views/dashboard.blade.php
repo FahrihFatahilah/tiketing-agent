@@ -3,7 +3,7 @@
 
     <div class="space-y-6">
         {{-- Header --}}
-        <div class="flex items-center justify-between">
+        <div class="flex flex-wrap items-center justify-between gap-3">
             <div>
                 <p class="text-sm text-slate-500">{{ \Carbon\Carbon::today()->translatedFormat('l, d F Y') }}</p>
             </div>

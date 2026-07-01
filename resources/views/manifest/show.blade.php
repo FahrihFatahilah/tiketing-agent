@@ -18,16 +18,16 @@
         </div>
 
         {{-- Search --}}
-        <form method="GET" class="flex gap-2">
-            <x-input name="search" value="{{ request('search') }}" placeholder="Cari nama penumpang..." class="w-64" />
+        <form method="GET" class="flex flex-wrap gap-2">
+            <x-input name="search" value="{{ request('search') }}" placeholder="Cari nama penumpang..." class="w-full sm:w-64" />
             <x-button type="submit" variant="outline">Cari</x-button>
             @if(request('search'))
                 <a href="{{ route('manifest.show', $trip) }}"><x-button variant="ghost">Reset</x-button></a>
             @endif
         </form>
 
-        <x-card>
-            <table class="w-full text-sm">
+        <x-card class="overflow-x-auto">
+            <table class="w-full text-sm min-w-[400px]">
                 <thead>
                     <tr class="border-b border-slate-100">
                         <th class="text-left px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wide w-12">Kursi</th>
