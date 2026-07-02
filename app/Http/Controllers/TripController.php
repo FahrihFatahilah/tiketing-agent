@@ -16,12 +16,20 @@ class TripController extends Controller
         $buses = Bus::with('busType')->get();
 
         // Trips grouped by date (last 7 days + future)
-        $tripsByDate = Trip::with(['schedule.route', 'bus.busType', 'passengers'])
+        $allTrips = Trip::with(['schedule.route', 'bus.busType', 'passengers'])
             ->where('tanggal_berangkat', '>=', today()->subDays(6))
             ->orderBy('tanggal_berangkat', 'desc')
             ->orderBy('id')
-            ->get()
-            ->groupBy(fn($t) => $t->tanggal_berangkat->format('Y-m-d'));
+            ->get();
+
+        $tripsByDate = $allTrips->groupBy(fn($t) => $t->tanggal_berangkat->format('Y-m-d'));
+
+        // Map: tanggal -> [schedule_id, ...] dan [bus_id, ...] yang sudah ada tripnya
+        $takenSchedules = $allTrips->groupBy(fn($t) => $t->tanggal_berangkat->format('Y-m-d'))
+            ->map(fn($trips) => $trips->pluck('schedule_id')->values());
+
+        $takenBuses = $allTrips->groupBy(fn($t) => $t->tanggal_berangkat->format('Y-m-d'))
+            ->map(fn($trips) => $trips->pluck('bus_id')->values());
 
         $trip = null;
         $seatMap = null;
@@ -53,7 +61,7 @@ class TripController extends Controller
             $seatMap = compact('grid', 'sleeperSeats', 'layout');
         }
 
-        return view('trips.index', compact('schedules', 'buses', 'trip', 'seatMap', 'occupiedSeats', 'tripsByDate'));
+        return view('trips.index', compact('schedules', 'buses', 'trip', 'seatMap', 'occupiedSeats', 'tripsByDate', 'takenSchedules', 'takenBuses'));
     }
 
     public function seatmap(Trip $trip)
@@ -75,23 +83,37 @@ class TripController extends Controller
         $schedules = Schedule::with('route')->where('aktif', true)->get();
         $buses = Bus::with('busType')->get();
 
-        $tripsByDate = Trip::with(['schedule.route', 'bus.busType', 'passengers'])
+        $allTrips2 = Trip::with(['schedule.route', 'bus.busType', 'passengers'])
             ->where('tanggal_berangkat', '>=', today()->subDays(6))
             ->orderBy('tanggal_berangkat', 'desc')
             ->orderBy('id')
-            ->get()
-            ->groupBy(fn($t) => $t->tanggal_berangkat->format('Y-m-d'));
+            ->get();
 
-        return view('trips.index', compact('schedules', 'buses', 'trip', 'seatMap', 'occupiedSeats', 'tripsByDate'));
+        $tripsByDate = $allTrips2->groupBy(fn($t) => $t->tanggal_berangkat->format('Y-m-d'));
+        $takenSchedules = $allTrips2->groupBy(fn($t) => $t->tanggal_berangkat->format('Y-m-d'))
+            ->map(fn($trips) => $trips->pluck('schedule_id')->values());
+        $takenBuses = $allTrips2->groupBy(fn($t) => $t->tanggal_berangkat->format('Y-m-d'))
+            ->map(fn($trips) => $trips->pluck('bus_id')->values());
+
+        return view('trips.index', compact('schedules', 'buses', 'trip', 'seatMap', 'occupiedSeats', 'tripsByDate', 'takenSchedules', 'takenBuses'));
     }
 
     public function store(Request $request)
     {
         $request->validate([
             'schedule_id' => 'required|exists:schedules,id',
-            'bus_id' => 'required|exists:buses,id',
-            'tanggal' => 'required|date',
+            'bus_id'      => 'required|exists:buses,id',
+            'tanggal'     => 'required|date',
         ]);
+
+        // Cek bus sudah dipakai di tanggal ini
+        $busConflict = Trip::where('bus_id', $request->bus_id)
+            ->where('tanggal_berangkat', $request->tanggal)
+            ->exists();
+
+        if ($busConflict) {
+            return back()->withErrors(['bus_id' => 'Armada ini sudah digunakan di tanggal tersebut.'])->withInput();
+        }
 
         $trip = Trip::firstOrCreate(
             ['schedule_id' => $request->schedule_id, 'tanggal_berangkat' => $request->tanggal],

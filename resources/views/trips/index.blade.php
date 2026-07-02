@@ -58,37 +58,45 @@
 
         {{-- Selector --}}
         <p class="text-xs font-semibold uppercase tracking-widest text-zinc-400 mb-3">Buka / Buat Trip</p>
-        <div class="card p-4 mb-4">
+        <div class="card p-4 mb-4" x-data="tripForm()">
             <form method="POST" action="{{ route('trips.store') }}" class="space-y-3">
                 @csrf
+                <div class="space-y-1.5">
+                    <label class="label">Tanggal</label>
+                    <input type="date" name="tanggal" x-model="tanggal" class="input"
+                           value="{{ $trip ? $trip->tanggal_berangkat->format('Y-m-d') : today()->format('Y-m-d') }}">
+                </div>
                 <div class="space-y-1.5">
                     <label class="label">Jadwal</label>
                     <select name="schedule_id" required class="input">
                         <option value="">Pilih jadwal...</option>
                         @foreach($schedules as $s)
-                            <option value="{{ $s->id }}" {{ $trip && $trip->schedule_id == $s->id ? 'selected' : '' }}>
+                            <option value="{{ $s->id }}"
+                                    :disabled="isTaken({{ $s->id }})"
+                                    :class="isTaken({{ $s->id }}) ? 'text-zinc-300' : ''"
+                                    {{ $trip && $trip->schedule_id == $s->id ? 'selected' : '' }}>
                                 {{ $s->route->name }} — {{ $s->label }}
+                                <template x-if="isTaken({{ $s->id }})"> (sudah ada)</template>
                             </option>
                         @endforeach
                     </select>
+                    <p x-show="takenCount > 0" class="text-[11px] text-zinc-400">
+                        <span x-text="takenCount"></span> jadwal sudah ada trip di tanggal ini
+                    </p>
                 </div>
-                <div class="grid grid-cols-2 gap-3">
-                    <div class="space-y-1.5">
-                        <label class="label">Tanggal</label>
-                        <input type="date" name="tanggal" class="input"
-                               value="{{ $trip ? $trip->tanggal_berangkat->format('Y-m-d') : today()->format('Y-m-d') }}">
-                    </div>
-                    <div class="space-y-1.5">
-                        <label class="label">Armada</label>
-                        <select name="bus_id" required class="input">
-                            <option value="">Pilih...</option>
-                            @foreach($buses as $b)
-                                <option value="{{ $b->id }}" {{ $trip && $trip->bus_id == $b->id ? 'selected' : '' }}>
-                                    {{ $b->nomor_lambung }}
-                                </option>
-                            @endforeach
-                        </select>
-                    </div>
+                <div class="space-y-1.5">
+                    <label class="label">Armada</label>
+                    <select name="bus_id" required class="input">
+                        <option value="">Pilih...</option>
+                        @foreach($buses as $b)
+                            <option value="{{ $b->id }}"
+                                    :disabled="isBusTaken({{ $b->id }})"
+                                    :class="isBusTaken({{ $b->id }}) ? 'text-zinc-300' : ''"
+                                    {{ $trip && $trip->bus_id == $b->id ? 'selected' : '' }}>
+                                {{ $b->nomor_lambung }}
+                            </option>
+                        @endforeach
+                    </select>
                 </div>
                 <button type="submit" class="btn-default w-full">Tampilkan</button>
             </form>
@@ -388,4 +396,19 @@
     @else
     <script>function seatApp() { return { dialogOpen:false, openSeat(){}, closeDialog(){} } }</script>
     @endif
+
+    <script>
+    const takenSchedules = @json($takenSchedules);
+    const takenBuses = @json($takenBuses);
+    function tripForm() {
+        return {
+            tanggal: '{{ $trip ? $trip->tanggal_berangkat->format('Y-m-d') : today()->format('Y-m-d') }}',
+            get takenSched() { return takenSchedules[this.tanggal] || []; },
+            get takenBus()   { return takenBuses[this.tanggal] || []; },
+            get takenCount() { return this.takenSched.length; },
+            isTaken(scheduleId)  { return this.takenSched.includes(scheduleId); },
+            isBusTaken(busId)    { return this.takenBus.includes(busId); },
+        }
+    }
+    </script>
 </x-app-layout>
