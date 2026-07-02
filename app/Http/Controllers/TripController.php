@@ -28,7 +28,7 @@ class TripController extends Controller
                 ['bus_id' => $request->bus_id, 'status' => 'dibuka']
             );
 
-            $trip->load(['schedule.route', 'bus.busType', 'passengers.seat']);
+            $trip->load(['schedule.route', 'bus.busType', 'passengers.seat', 'passengers.inputBy']);
 
             $busType = $trip->bus->busType;
             $seats = Seat::where('bus_type_id', $busType->id)->orderBy('posisi_row')->orderBy('posisi_col')->get();
@@ -51,7 +51,7 @@ class TripController extends Controller
 
     public function seatmap(Trip $trip)
     {
-        $trip->load(['schedule.route', 'bus.busType', 'passengers.seat']);
+        $trip->load(['schedule.route', 'bus.busType', 'passengers.seat', 'passengers.inputBy']);
 
         $busType = $trip->bus->busType;
         $seats = Seat::where('bus_type_id', $busType->id)->orderBy('posisi_row')->orderBy('posisi_col')->get();

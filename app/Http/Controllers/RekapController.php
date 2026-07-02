@@ -14,7 +14,7 @@ class RekapController extends Controller
 
         [$year, $month] = explode('-', $bulan);
 
-        $trips = Trip::with(['schedule.route', 'bus.busType', 'passengers'])
+        $trips = Trip::with(['schedule.route', 'bus.busType', 'passengers.seat', 'passengers.inputBy'])
             ->whereYear('tanggal_berangkat', $year)
             ->whereMonth('tanggal_berangkat', $month)
             ->orderBy('tanggal_berangkat')
