@@ -24,11 +24,14 @@ class TripController extends Controller
 
         $tripsByDate = $allTrips->groupBy(fn($t) => $t->tanggal_berangkat->format('Y-m-d'));
 
-        // Map: tanggal -> [schedule_id, ...] dan [bus_id, ...] yang sudah ada tripnya
-        $takenSchedules = $allTrips->groupBy(fn($t) => $t->tanggal_berangkat->format('Y-m-d'))
+        // Hanya trip aktif (dibuka) yang menghalangi pemilihan
+        $activeTrips = $allTrips->where('status', 'dibuka');
+
+        $takenSchedules = $activeTrips->groupBy(fn($t) => $t->tanggal_berangkat->format('Y-m-d'))
             ->map(fn($trips) => $trips->pluck('schedule_id')->values());
 
-        $takenBuses = $allTrips->groupBy(fn($t) => $t->tanggal_berangkat->format('Y-m-d'))
+        // Bus yang sudah dipakai per kombinasi tanggal+schedule
+        $takenBuses = $activeTrips->groupBy(fn($t) => $t->tanggal_berangkat->format('Y-m-d') . '|' . $t->schedule_id)
             ->map(fn($trips) => $trips->pluck('bus_id')->values());
 
         $trip = null;
@@ -90,9 +93,10 @@ class TripController extends Controller
             ->get();
 
         $tripsByDate = $allTrips2->groupBy(fn($t) => $t->tanggal_berangkat->format('Y-m-d'));
-        $takenSchedules = $allTrips2->groupBy(fn($t) => $t->tanggal_berangkat->format('Y-m-d'))
+        $activeTrips2 = $allTrips2->where('status', 'dibuka');
+        $takenSchedules = $activeTrips2->groupBy(fn($t) => $t->tanggal_berangkat->format('Y-m-d'))
             ->map(fn($trips) => $trips->pluck('schedule_id')->values());
-        $takenBuses = $allTrips2->groupBy(fn($t) => $t->tanggal_berangkat->format('Y-m-d'))
+        $takenBuses = $activeTrips2->groupBy(fn($t) => $t->tanggal_berangkat->format('Y-m-d') . '|' . $t->schedule_id)
             ->map(fn($trips) => $trips->pluck('bus_id')->values());
 
         return view('trips.index', compact('schedules', 'buses', 'trip', 'seatMap', 'occupiedSeats', 'tripsByDate', 'takenSchedules', 'takenBuses'));
@@ -109,6 +113,8 @@ class TripController extends Controller
         // Cek bus sudah dipakai di tanggal ini
         $busConflict = Trip::where('bus_id', $request->bus_id)
             ->where('tanggal_berangkat', $request->tanggal)
+            ->where('schedule_id', $request->schedule_id)
+            ->where('status', 'dibuka')
             ->exists();
 
         if ($busConflict) {

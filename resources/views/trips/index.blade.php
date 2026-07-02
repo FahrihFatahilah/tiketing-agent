@@ -68,7 +68,7 @@
                 </div>
                 <div class="space-y-1.5">
                     <label class="label">Jadwal</label>
-                    <select name="schedule_id" required class="input">
+                    <select name="schedule_id" x-model="scheduleId" required class="input">
                         <option value="">Pilih jadwal...</option>
                         @foreach($schedules as $s)
                             <option value="{{ $s->id }}"
@@ -403,11 +403,14 @@
     function tripForm() {
         return {
             tanggal: '{{ $trip ? $trip->tanggal_berangkat->format('Y-m-d') : today()->format('Y-m-d') }}',
+            scheduleId: '{{ $trip ? $trip->schedule_id : '' }}',
             get takenSched() { return takenSchedules[this.tanggal] || []; },
-            get takenBus()   { return takenBuses[this.tanggal] || []; },
             get takenCount() { return this.takenSched.length; },
             isTaken(scheduleId)  { return this.takenSched.includes(scheduleId); },
-            isBusTaken(busId)    { return this.takenBus.includes(busId); },
+            isBusTaken(busId) {
+                const key = this.tanggal + '|' + this.scheduleId;
+                return (takenBuses[key] || []).includes(busId);
+            },
         }
     }
     </script>
