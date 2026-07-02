@@ -15,6 +15,14 @@ class TripController extends Controller
         $schedules = Schedule::with('route')->where('aktif', true)->get();
         $buses = Bus::with('busType')->get();
 
+        // Trips grouped by date (last 7 days + future)
+        $tripsByDate = Trip::with(['schedule.route', 'bus.busType', 'passengers'])
+            ->where('tanggal_berangkat', '>=', today()->subDays(6))
+            ->orderBy('tanggal_berangkat', 'desc')
+            ->orderBy('id')
+            ->get()
+            ->groupBy(fn($t) => $t->tanggal_berangkat->format('Y-m-d'));
+
         $trip = null;
         $seatMap = null;
         $occupiedSeats = collect();
@@ -35,7 +43,6 @@ class TripController extends Controller
 
             $occupiedSeats = $trip->passengers->keyBy('seat_id');
 
-            // Build grid: rows x cols
             $layout = $busType->layout_config;
             $grid = [];
             foreach ($seats->where('kategori', 'reguler') as $seat) {
@@ -46,7 +53,7 @@ class TripController extends Controller
             $seatMap = compact('grid', 'sleeperSeats', 'layout');
         }
 
-        return view('trips.index', compact('schedules', 'buses', 'trip', 'seatMap', 'occupiedSeats'));
+        return view('trips.index', compact('schedules', 'buses', 'trip', 'seatMap', 'occupiedSeats', 'tripsByDate'));
     }
 
     public function seatmap(Trip $trip)
@@ -68,7 +75,14 @@ class TripController extends Controller
         $schedules = Schedule::with('route')->where('aktif', true)->get();
         $buses = Bus::with('busType')->get();
 
-        return view('trips.index', compact('schedules', 'buses', 'trip', 'seatMap', 'occupiedSeats'));
+        $tripsByDate = Trip::with(['schedule.route', 'bus.busType', 'passengers'])
+            ->where('tanggal_berangkat', '>=', today()->subDays(6))
+            ->orderBy('tanggal_berangkat', 'desc')
+            ->orderBy('id')
+            ->get()
+            ->groupBy(fn($t) => $t->tanggal_berangkat->format('Y-m-d'));
+
+        return view('trips.index', compact('schedules', 'buses', 'trip', 'seatMap', 'occupiedSeats', 'tripsByDate'));
     }
 
     public function store(Request $request)
