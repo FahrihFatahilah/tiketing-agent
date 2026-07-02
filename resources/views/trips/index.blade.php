@@ -89,10 +89,7 @@
                     <select name="bus_id" required class="input">
                         <option value="">Pilih...</option>
                         @foreach($buses as $b)
-                            <option value="{{ $b->id }}"
-                                    :disabled="isBusTaken({{ $b->id }})"
-                                    :class="isBusTaken({{ $b->id }}) ? 'text-zinc-300' : ''"
-                                    {{ $trip && $trip->bus_id == $b->id ? 'selected' : '' }}>
+                            <option value="{{ $b->id }}" {{ $trip && $trip->bus_id == $b->id ? 'selected' : '' }}>
                                 {{ $b->nomor_lambung }}
                             </option>
                         @endforeach
@@ -399,18 +396,13 @@
 
     <script>
     const takenSchedules = @json($takenSchedules);
-    const takenBuses = @json($takenBuses);
     function tripForm() {
         return {
             tanggal: '{{ $trip ? $trip->tanggal_berangkat->format('Y-m-d') : today()->format('Y-m-d') }}',
             scheduleId: '{{ $trip ? $trip->schedule_id : '' }}',
             get takenSched() { return takenSchedules[this.tanggal] || []; },
             get takenCount() { return this.takenSched.length; },
-            isTaken(scheduleId)  { return this.takenSched.includes(scheduleId); },
-            isBusTaken(busId) {
-                const key = this.tanggal + '|' + this.scheduleId;
-                return (takenBuses[key] || []).includes(busId);
-            },
+            isTaken(scheduleId) { return this.takenSched.includes(scheduleId); },
         }
     }
     </script>
