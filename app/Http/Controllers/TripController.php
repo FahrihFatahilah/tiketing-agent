@@ -10,12 +10,11 @@ use Illuminate\Http\Request;
 
 class TripController extends Controller
 {
-    public function index(Request $request)
+    private function buildViewData(Trip $trip = null)
     {
         $schedules = Schedule::with('route')->where('aktif', true)->get();
         $buses = Bus::with('busType')->get();
 
-        // Trips grouped by date (last 7 days + future)
         $allTrips = Trip::with(['schedule.route', 'bus.busType', 'passengers'])
             ->where('tanggal_berangkat', '>=', today()->subDays(6))
             ->orderBy('tanggal_berangkat', 'desc')
@@ -24,29 +23,23 @@ class TripController extends Controller
 
         $tripsByDate = $allTrips->groupBy(fn($t) => $t->tanggal_berangkat->format('Y-m-d'));
 
-        // Hanya trip aktif (dibuka) yang menghalangi pemilihan
-        $activeTrips = $allTrips->where('status', 'dibuka');
+        // bus_id yang sudah dipakai per tanggal+schedule
+        $takenBuses = $allTrips->where('status', 'dibuka')
+            ->groupBy(fn($t) => $t->tanggal_berangkat->format('Y-m-d'))
+            ->map(fn($trips) => $trips->map(fn($t) => [
+                'schedule_id' => $t->schedule_id,
+                'bus_id'      => $t->bus_id,
+            ])->values());
 
-        $takenSchedules = $activeTrips->groupBy(fn($t) => $t->tanggal_berangkat->format('Y-m-d'))
-            ->map(fn($trips) => $trips->pluck('schedule_id')->values());
-
-        $trip = null;
         $seatMap = null;
         $occupiedSeats = collect();
 
-        if ($request->filled(['schedule_id', 'tanggal', 'bus_id'])) {
-            $trip = Trip::firstOrCreate(
-                [
-                    'schedule_id' => $request->schedule_id,
-                    'tanggal_berangkat' => $request->tanggal,
-                ],
-                ['bus_id' => $request->bus_id, 'status' => 'dibuka']
-            );
-
+        if ($trip) {
             $trip->load(['schedule.route', 'bus.busType', 'passengers.seat', 'passengers.inputBy']);
 
             $busType = $trip->bus->busType;
-            $seats = Seat::where('bus_type_id', $busType->id)->orderBy('posisi_row')->orderBy('posisi_col')->get();
+            $seats = Seat::where('bus_type_id', $busType->id)
+                ->orderBy('posisi_row')->orderBy('posisi_col')->get();
 
             $occupiedSeats = $trip->passengers->keyBy('seat_id');
 
@@ -56,44 +49,33 @@ class TripController extends Controller
                 $grid[$seat->posisi_row][$seat->posisi_col] = $seat;
             }
             $sleeperSeats = $seats->where('kategori', 'sleeper');
-
             $seatMap = compact('grid', 'sleeperSeats', 'layout');
         }
 
-        return view('trips.index', compact('schedules', 'buses', 'trip', 'seatMap', 'occupiedSeats', 'tripsByDate', 'takenSchedules'));
+        return compact('schedules', 'buses', 'trip', 'seatMap', 'occupiedSeats', 'tripsByDate', 'takenBuses');
+    }
+
+    public function index(Request $request)
+    {
+        $trip = null;
+
+        if ($request->filled(['schedule_id', 'tanggal', 'bus_id'])) {
+            $trip = Trip::firstOrCreate(
+                [
+                    'bus_id'            => $request->bus_id,
+                    'schedule_id'       => $request->schedule_id,
+                    'tanggal_berangkat' => $request->tanggal,
+                ],
+                ['status' => 'dibuka']
+            );
+        }
+
+        return view('trips.index', $this->buildViewData($trip));
     }
 
     public function seatmap(Trip $trip)
     {
-        $trip->load(['schedule.route', 'bus.busType', 'passengers.seat', 'passengers.inputBy']);
-
-        $busType = $trip->bus->busType;
-        $seats = Seat::where('bus_type_id', $busType->id)->orderBy('posisi_row')->orderBy('posisi_col')->get();
-        $occupiedSeats = $trip->passengers->keyBy('seat_id');
-
-        $layout = $busType->layout_config;
-        $grid = [];
-        foreach ($seats->where('kategori', 'reguler') as $seat) {
-            $grid[$seat->posisi_row][$seat->posisi_col] = $seat;
-        }
-        $sleeperSeats = $seats->where('kategori', 'sleeper');
-        $seatMap = compact('grid', 'sleeperSeats', 'layout');
-
-        $schedules = Schedule::with('route')->where('aktif', true)->get();
-        $buses = Bus::with('busType')->get();
-
-        $allTrips2 = Trip::with(['schedule.route', 'bus.busType', 'passengers'])
-            ->where('tanggal_berangkat', '>=', today()->subDays(6))
-            ->orderBy('tanggal_berangkat', 'desc')
-            ->orderBy('id')
-            ->get();
-
-        $tripsByDate = $allTrips2->groupBy(fn($t) => $t->tanggal_berangkat->format('Y-m-d'));
-        $activeTrips2 = $allTrips2->where('status', 'dibuka');
-        $takenSchedules = $activeTrips2->groupBy(fn($t) => $t->tanggal_berangkat->format('Y-m-d'))
-            ->map(fn($trips) => $trips->pluck('schedule_id')->values());
-
-        return view('trips.index', compact('schedules', 'buses', 'trip', 'seatMap', 'occupiedSeats', 'tripsByDate', 'takenSchedules'));
+        return view('trips.index', $this->buildViewData($trip));
     }
 
     public function store(Request $request)
@@ -104,20 +86,21 @@ class TripController extends Controller
             'tanggal'     => 'required|date',
         ]);
 
-        $busConflict = Trip::where('bus_id', $request->bus_id)
-            ->where('tanggal_berangkat', $request->tanggal)
+        $conflict = Trip::where('bus_id', $request->bus_id)
             ->where('schedule_id', $request->schedule_id)
-            ->where('status', 'dibuka')
+            ->where('tanggal_berangkat', $request->tanggal)
             ->exists();
 
-        if ($busConflict) {
+        if ($conflict) {
             return back()->withErrors(['bus_id' => 'Armada ini sudah digunakan di jadwal dan tanggal tersebut.'])->withInput();
         }
 
-        $trip = Trip::firstOrCreate(
-            ['schedule_id' => $request->schedule_id, 'tanggal_berangkat' => $request->tanggal],
-            ['bus_id' => $request->bus_id, 'status' => 'dibuka']
-        );
+        $trip = Trip::create([
+            'bus_id'            => $request->bus_id,
+            'schedule_id'       => $request->schedule_id,
+            'tanggal_berangkat' => $request->tanggal,
+            'status'            => 'dibuka',
+        ]);
 
         return redirect()->route('trips.seatmap', $trip);
     }
