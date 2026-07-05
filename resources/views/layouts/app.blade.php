@@ -22,7 +22,7 @@
 
     {{-- Top bar --}}
     <header class="sticky top-0 z-30 flex h-14 items-center gap-3 border-b border-zinc-200 bg-white/95 backdrop-blur px-4">
-        @role('admin')
+        @role('admin|pengurus')
         <button @click="drawerOpen = true" class="btn-ghost btn-icon rounded-md -ml-1">
             <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
@@ -40,8 +40,8 @@
         </a>
     </header>
 
-    {{-- Admin drawer --}}
-    @role('admin')
+    {{-- Drawer (admin & pengurus) --}}
+    @role('admin|pengurus')
     <div x-show="drawerOpen" x-cloak class="fixed inset-0 z-50 flex" style="display:none">
         <div class="absolute inset-0 bg-black/40" @click="drawerOpen = false"></div>
         <aside class="relative z-10 flex w-64 flex-col bg-white border-r border-zinc-200 shadow-xl"
@@ -57,6 +57,7 @@
             </div>
 
             <nav class="flex-1 overflow-y-auto p-2 space-y-0.5">
+                @role('admin')
                 <p class="px-2 py-1.5 text-[11px] font-semibold uppercase tracking-widest text-zinc-400">Master Data</p>
                 @php
                     $links = [
@@ -72,6 +73,26 @@
                               {{ request()->routeIs($link['pattern']) ? 'bg-zinc-100 font-medium text-zinc-900' : 'text-zinc-600 hover:bg-zinc-50 hover:text-zinc-900' }}">
                         {{ $link['label'] }}
                     </a>
+                @endforeach
+                @endrole
+
+                <p class="px-2 py-1.5 text-[11px] font-semibold uppercase tracking-widest text-zinc-400">Menu</p>
+                @php
+                    $commonLinks = [
+                        ['route' => 'dashboard',   'label' => 'Beranda',  'pattern' => 'dashboard'],
+                        ['route' => 'trips.index', 'label' => 'Trip',     'pattern' => 'trips.*'],
+                        ['route' => 'rekap.index', 'label' => 'Rekap',    'pattern' => 'rekap.*', 'roles' => ['admin']],
+                        ['route' => 'profile.edit','label' => 'Profil',   'pattern' => 'profile.*'],
+                    ];
+                @endphp
+                @foreach($commonLinks as $link)
+                    @if(!isset($link['roles']) || auth()->user()->hasAnyRole($link['roles']))
+                        <a href="{{ route($link['route']) }}" @click="drawerOpen = false"
+                           class="flex items-center rounded-md px-2 py-1.5 text-sm transition-colors
+                                  {{ request()->routeIs($link['pattern']) ? 'bg-zinc-100 font-medium text-zinc-900' : 'text-zinc-600 hover:bg-zinc-50 hover:text-zinc-900' }}">
+                            {{ $link['label'] }}
+                        </a>
+                    @endif
                 @endforeach
             </nav>
 
