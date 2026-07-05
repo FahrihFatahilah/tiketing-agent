@@ -213,6 +213,7 @@
                                                 'alamat_turun' => $passenger->alamat_turun,
                                                 'catatan'      => $passenger->catatan,
                                                 'diinput_oleh' => $passenger->inputBy?->name,
+                                                'is_owner'     => $passenger->diinput_oleh === auth()->id() || auth()->user()->hasRole('admin'),
                                             ] : null;
                                         @endphp
                                         <button type="button"
@@ -246,6 +247,7 @@
                                                 'alamat_turun' => $passenger->alamat_turun,
                                                 'catatan'      => $passenger->catatan,
                                                 'diinput_oleh' => $passenger->inputBy?->name,
+                                                'is_owner'     => $passenger->diinput_oleh === auth()->id() || auth()->user()->hasRole('admin'),
                                             ] : null;
                                         @endphp
                                         <button type="button"
@@ -320,7 +322,7 @@
                                 <span class="text-sm font-medium text-zinc-900" x-text="currentPassenger?.diinput_oleh || '—'"></span>
                             </div>
                         </div>
-                        <div class="flex gap-2">
+                        <div class="flex gap-2" x-show="currentPassenger?.is_owner">
                             <button @click="editMode = true" class="btn-outline flex-1">Edit</button>
                             <form :action="deleteUrl()" method="POST" @submit.prevent="submitDelete($el)" class="flex-1">
                                 @csrf @method('DELETE')
@@ -330,7 +332,7 @@
                     </div>
 
                     {{-- Form --}}
-                    <form x-show="!currentPassenger || editMode" :action="formUrl()" method="POST" @submit="closeDialog()" class="space-y-3">
+                    <form x-show="!currentPassenger || (editMode && currentPassenger?.is_owner)" :action="formUrl()" method="POST" @submit="closeDialog()" class="space-y-3">
                         @csrf
                         <template x-if="currentPassenger"><input type="hidden" name="_method" value="PATCH"></template>
                         <input type="hidden" name="seat_id" :value="currentSeat?.id">

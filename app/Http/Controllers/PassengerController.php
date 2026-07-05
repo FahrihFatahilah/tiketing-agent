@@ -47,6 +47,7 @@ class PassengerController extends Controller
         ]);
 
         abort_if($trip->status === 'ditutup' && !auth()->user()->hasRole('admin'), 403);
+        abort_if($passenger->diinput_oleh !== auth()->id() && !auth()->user()->hasRole('admin'), 403, 'Anda tidak berhak mengedit data ini.');
 
         $passenger->update($request->only(['nama_penumpang', 'no_hp', 'alamat_naik', 'alamat_turun', 'catatan']));
 
@@ -56,6 +57,7 @@ class PassengerController extends Controller
     public function destroy(Trip $trip, Passenger $passenger)
     {
         abort_if($trip->status === 'ditutup' && !auth()->user()->hasRole('admin'), 403);
+        abort_if($passenger->diinput_oleh !== auth()->id() && !auth()->user()->hasRole('admin'), 403, 'Anda tidak berhak menghapus data ini.');
 
         $passenger->delete();
 
