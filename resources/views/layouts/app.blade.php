@@ -41,7 +41,7 @@
     </header>
 
     {{-- Drawer (admin & pengurus) --}}
-    @role('admin|pengurus')
+    @role('admin|pengurus|agen')
     <div x-show="drawerOpen" x-cloak class="fixed inset-0 z-50 flex" style="display:none">
         <div class="absolute inset-0 bg-black/40" @click="drawerOpen = false"></div>
         <aside class="relative z-10 flex w-64 flex-col bg-white border-r border-zinc-200 shadow-xl"
