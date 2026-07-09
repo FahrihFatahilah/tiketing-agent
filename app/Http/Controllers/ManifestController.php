@@ -23,8 +23,8 @@ class ManifestController extends Controller
 
     public function pdf(Trip $trip)
     {
-        $trip->load(['schedule.route', 'bus', 'passengers.seat']);
-        $passengers = $trip->passengers()->with('seat')->orderBy('seat_id')->get();
+        $trip->load(['schedule.route', 'bus', 'passengers.seat', 'passengers.inputBy']);
+        $passengers = $trip->passengers()->with(['seat', 'inputBy'])->orderBy('seat_id')->get();
 
         $pdf = Pdf::loadView('manifest.pdf', compact('trip', 'passengers'))
             ->setPaper('a4', 'portrait');

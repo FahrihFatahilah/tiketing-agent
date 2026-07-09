@@ -1,10 +1,13 @@
 <x-app-layout>
     <x-slot name="title">Rekap Okupansi</x-slot>
 
-    <form method="GET" class="flex gap-2 mb-4">
-        <input type="month" name="bulan" value="{{ $bulan }}" class="input flex-1">
-        <button type="submit" class="btn-default btn-sm px-4">Tampilkan</button>
-    </form>
+    <div class="flex flex-wrap items-end gap-2 mb-4">
+        <form method="GET" class="flex gap-2 flex-1">
+            <input type="month" name="bulan" value="{{ $bulan }}" class="input flex-1">
+            <button type="submit" class="btn-default btn-sm px-4">Tampilkan</button>
+        </form>
+        <a href="{{ route('rekap.pdf', ['bulan' => $bulan]) }}" class="btn-outline btn-sm px-4">Export PDF</a>
+    </div>
 
     @if($trips->isEmpty())
         <div class="card flex flex-col items-center justify-center gap-2 py-10 text-center">

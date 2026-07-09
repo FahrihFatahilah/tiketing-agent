@@ -32,6 +32,7 @@
                 <th>Naik dari</th>
                 <th>Turun di</th>
                 <th>Catatan</th>
+                <th>Diinput Oleh</th>
             </tr>
         </thead>
         <tbody>
@@ -44,6 +45,7 @@
                 <td>{{ $p->alamat_naik ?: '—' }}</td>
                 <td>{{ $p->alamat_turun ?: '—' }}</td>
                 <td>{{ $p->catatan ?: '' }}</td>
+                <td>{{ $p->inputBy?->name ?? '—' }}</td>
             </tr>
             @endforeach
         </tbody>

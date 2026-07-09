@@ -140,6 +140,7 @@
 
                 <div class="flex gap-2">
                     <a href="{{ route('manifest.show', $trip) }}" class="btn-outline btn-sm flex-1 justify-center">Manifest</a>
+                    <a href="{{ route('baggage.index', $trip) }}" class="btn-outline btn-sm flex-1 justify-center">Bagasi</a>
                     @role('admin|pengurus')
                     <form action="{{ route('trips.status', $trip) }}" method="POST" class="flex-1">
                         @csrf @method('PATCH')
@@ -166,35 +167,94 @@
                         <div class="h-3 w-3 rounded-sm border border-zinc-300 bg-white"></div>
                         <span class="text-[11px] text-zinc-500">Kosong</span>
                     </div>
+                    @if($seatMap['layout']['sleeper_section'])
                     <div class="flex items-center gap-1.5">
-                        <div class="h-3 w-3 rounded-sm border border-zinc-300 bg-zinc-100"></div>
+                        <div class="h-3 w-3 rounded-sm border border-amber-300 bg-amber-50"></div>
                         <span class="text-[11px] text-zinc-500">Sleeper</span>
                     </div>
+                    @endif
                 </div>
 
                 <div class="flex justify-center">
                     <div class="w-full max-w-[240px]">
-                        <div class="mb-4 flex justify-center">
+                        {{-- DEPAN label --}}
+                        <div class="mb-3 flex justify-center">
                             <span class="rounded-md border border-zinc-200 bg-zinc-50 px-4 py-1 text-[10px] font-semibold uppercase tracking-widest text-zinc-400">
                                 ▲ Depan
                             </span>
                         </div>
 
-                        {{-- Driver --}}
+                        {{-- Driver + Sleeper row --}}
                         <div class="mb-3 grid grid-cols-5 gap-1.5">
-                            <div class="col-span-2"></div><div></div>
-                            <div class="col-span-2 flex justify-end">
-                                <div class="flex h-10 w-10 items-center justify-center rounded-md border border-zinc-200 bg-zinc-50">
-                                    <svg class="h-4 w-4 text-zinc-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <circle cx="12" cy="12" r="9" stroke-width="1.5"/>
-                                        <path stroke-linecap="round" stroke-width="1.5" d="M12 8v4M8 12h8"/>
-                                    </svg>
+                            @if($seatMap['layout']['sleeper_section'] && $seatMap['sleeperSeats']->count())
+                                {{-- Sleeper kiri --}}
+                                @php $sl = $seatMap['sleeperSeats']->where('posisi_col', 0)->first(); @endphp
+                                @if($sl)
+                                    @php $passenger = $occupiedSeats->get($sl->id); $pd = $passenger ? ['id'=>$passenger->id,'nama'=>$passenger->nama_penumpang,'no_hp'=>$passenger->no_hp,'alamat_naik'=>$passenger->alamat_naik,'alamat_turun'=>$passenger->alamat_turun,'catatan'=>$passenger->catatan,'diinput_oleh'=>$passenger->inputBy?->name,'is_owner'=>$passenger->diinput_oleh===auth()->id()||auth()->user()->hasRole('admin')] : null; @endphp
+                                    <button type="button" @click="openSeat({{ json_encode(['id'=>$sl->id,'nomor'=>$sl->nomor_kursi]) }}, {{ json_encode($pd) }})"
+                                            class="aspect-square w-full rounded-md border text-[10px] font-semibold transition-colors {{ $passenger ? 'border-zinc-900 bg-zinc-900 text-white' : 'border-amber-300 bg-amber-50 text-amber-700 hover:border-amber-400' }}">
+                                        {{ $sl->nomor_kursi }}
+                                    </button>
+                                @else
+                                    <div></div>
+                                @endif
+                                <div class="flex items-center justify-center">
+                                    <span class="text-[8px] text-zinc-300">SLP</span>
                                 </div>
-                            </div>
+                                <div></div>{{-- aisle --}}
+                                {{-- Sleeper kanan --}}
+                                @php $sr = $seatMap['sleeperSeats']->where('posisi_col', 3)->first(); @endphp
+                                @if($sr)
+                                    @php $passenger = $occupiedSeats->get($sr->id); $pd = $passenger ? ['id'=>$passenger->id,'nama'=>$passenger->nama_penumpang,'no_hp'=>$passenger->no_hp,'alamat_naik'=>$passenger->alamat_naik,'alamat_turun'=>$passenger->alamat_turun,'catatan'=>$passenger->catatan,'diinput_oleh'=>$passenger->inputBy?->name,'is_owner'=>$passenger->diinput_oleh===auth()->id()||auth()->user()->hasRole('admin')] : null; @endphp
+                                    <button type="button" @click="openSeat({{ json_encode(['id'=>$sr->id,'nomor'=>$sr->nomor_kursi]) }}, {{ json_encode($pd) }})"
+                                            class="aspect-square w-full rounded-md border text-[10px] font-semibold transition-colors {{ $passenger ? 'border-zinc-900 bg-zinc-900 text-white' : 'border-amber-300 bg-amber-50 text-amber-700 hover:border-amber-400' }}">
+                                        {{ $sr->nomor_kursi }}
+                                    </button>
+                                @else
+                                    <div></div>
+                                @endif
+                                {{-- Driver --}}
+                                <div class="flex items-center justify-center">
+                                    <div class="flex h-full w-full items-center justify-center rounded-md border border-zinc-200 bg-zinc-50">
+                                        <svg class="h-3.5 w-3.5 text-zinc-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <circle cx="12" cy="12" r="9" stroke-width="1.5"/>
+                                            <path stroke-linecap="round" stroke-width="1.5" d="M12 8v4M8 12h8"/>
+                                        </svg>
+                                    </div>
+                                </div>
+                            @else
+                                {{-- No sleeper: just driver --}}
+                                <div class="col-span-2"></div>
+                                <div></div>
+                                <div></div>
+                                <div class="flex items-center justify-center">
+                                    <div class="flex h-10 w-10 items-center justify-center rounded-md border border-zinc-200 bg-zinc-50">
+                                        <svg class="h-4 w-4 text-zinc-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <circle cx="12" cy="12" r="9" stroke-width="1.5"/>
+                                            <path stroke-linecap="round" stroke-width="1.5" d="M12 8v4M8 12h8"/>
+                                        </svg>
+                                    </div>
+                                </div>
+                            @endif
                         </div>
 
                         {{-- Regular seats --}}
-                        @foreach($seatMap['grid'] as $row => $cols)
+                        @php
+                            // Detect rows where left side has no seats (smoking/toilet)
+                            $smokingRows = [];
+                            $normalRows = [];
+                            foreach ($seatMap['grid'] as $r => $c) {
+                                if (!isset($c[0]) && !isset($c[1]) && (isset($c[3]) || isset($c[4]))) {
+                                    $smokingRows[] = $r;
+                                } else {
+                                    $normalRows[] = $r;
+                                }
+                            }
+                        @endphp
+
+                        {{-- Normal rows (both sides have seats) --}}
+                        @foreach($normalRows as $row)
+                            @php $cols = $seatMap['grid'][$row]; @endphp
                             <div class="mb-1.5 grid grid-cols-5 gap-1.5">
                                 @for($col = 0; $col <= 4; $col++)
                                     @if($col === $seatMap['layout']['aisle_col'])
@@ -218,7 +278,7 @@
                                         @endphp
                                         <button type="button"
                                                 @click="openSeat({{ json_encode(['id'=>$seat->id,'nomor'=>$seat->nomor_kursi]) }}, {{ json_encode($pd) }})"
-                                                class="aspect-square w-full rounded-md border text-[11px] font-semibold transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-zinc-950
+                                                class="aspect-square w-full rounded-md border text-[11px] font-semibold transition-colors
                                                     {{ $passenger
                                                         ? 'border-zinc-900 bg-zinc-900 text-white'
                                                         : 'border-zinc-200 bg-white text-zinc-600 hover:border-zinc-400 hover:bg-zinc-50' }}">
@@ -231,34 +291,38 @@
                             </div>
                         @endforeach
 
-                        {{-- Sleeper --}}
-                        @if($seatMap['layout']['sleeper_section'] && $seatMap['sleeperSeats']->count())
-                            <div class="mt-3 border-t border-dashed border-zinc-200 pt-3">
-                                <p class="mb-2 text-center text-[10px] font-semibold uppercase tracking-widest text-zinc-400">Sleeper</p>
-                                <div class="grid grid-cols-5 gap-1.5">
-                                    @foreach($seatMap['sleeperSeats'] as $seat)
-                                        @php
-                                            $passenger = $occupiedSeats->get($seat->id);
-                                            $pd = $passenger ? [
-                                                'id'           => $passenger->id,
-                                                'nama'         => $passenger->nama_penumpang,
-                                                'no_hp'        => $passenger->no_hp,
-                                                'alamat_naik'  => $passenger->alamat_naik,
-                                                'alamat_turun' => $passenger->alamat_turun,
-                                                'catatan'      => $passenger->catatan,
-                                                'diinput_oleh' => $passenger->inputBy?->name,
-                                                'is_owner'     => $passenger->diinput_oleh === auth()->id() || auth()->user()->hasRole('admin'),
-                                            ] : null;
-                                        @endphp
-                                        <button type="button"
-                                                @click="openSeat({{ json_encode(['id'=>$seat->id,'nomor'=>$seat->nomor_kursi]) }}, {{ json_encode($pd) }})"
-                                                style="grid-column:{{ $seat->posisi_col < 2 ? $seat->posisi_col + 1 : $seat->posisi_col }}"
-                                                class="aspect-square rounded-md border text-[11px] font-semibold transition-colors
-                                                    {{ $passenger
-                                                        ? 'border-zinc-900 bg-zinc-900 text-white'
-                                                        : 'border-zinc-200 bg-zinc-50 text-zinc-500 hover:border-zinc-400' }}">
-                                            {{ $seat->nomor_kursi }}
-                                        </button>
+                        {{-- Smoking/Toilet + back seats --}}
+                        @if(count($smokingRows))
+                            <div class="mt-2 flex gap-1.5">
+                                {{-- Smoking/Toilet kiri --}}
+                                <div class="flex-[2] flex flex-col items-center justify-center rounded-md border border-zinc-200 bg-zinc-50 py-3">
+                                    <span class="text-[9px] font-semibold uppercase text-zinc-400">Smoking</span>
+                                    <span class="text-[9px] font-semibold uppercase text-zinc-400">Area</span>
+                                    <div class="my-1 h-px w-8 bg-zinc-200"></div>
+                                    <span class="text-[9px] font-semibold uppercase text-zinc-400">Toilet</span>
+                                </div>
+                                {{-- Aisle --}}
+                                <div class="flex-[1] flex items-center justify-center">
+                                    <span class="text-[9px] text-zinc-300"></span>
+                                </div>
+                                {{-- Back seats kanan --}}
+                                <div class="flex-[2] grid grid-cols-2 gap-1.5 content-center">
+                                    @foreach($smokingRows as $row)
+                                        @php $cols = $seatMap['grid'][$row]; @endphp
+                                        @for($col = 3; $col <= 4; $col++)
+                                            @if(isset($cols[$col]))
+                                                @php
+                                                    $seat = $cols[$col];
+                                                    $passenger = $occupiedSeats->get($seat->id);
+                                                    $pd = $passenger ? ['id'=>$passenger->id,'nama'=>$passenger->nama_penumpang,'no_hp'=>$passenger->no_hp,'alamat_naik'=>$passenger->alamat_naik,'alamat_turun'=>$passenger->alamat_turun,'catatan'=>$passenger->catatan,'diinput_oleh'=>$passenger->inputBy?->name,'is_owner'=>$passenger->diinput_oleh===auth()->id()||auth()->user()->hasRole('admin')] : null;
+                                                @endphp
+                                                <button type="button"
+                                                        @click="openSeat({{ json_encode(['id'=>$seat->id,'nomor'=>$seat->nomor_kursi]) }}, {{ json_encode($pd) }})"
+                                                        class="aspect-square w-full rounded-md border text-[11px] font-semibold transition-colors {{ $passenger ? 'border-zinc-900 bg-zinc-900 text-white' : 'border-zinc-200 bg-white text-zinc-600 hover:border-zinc-400 hover:bg-zinc-50' }}">
+                                                    {{ $seat->nomor_kursi }}
+                                                </button>
+                                            @endif
+                                        @endfor
                                     @endforeach
                                 </div>
                             </div>

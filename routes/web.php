@@ -5,10 +5,12 @@ use App\Http\Controllers\Admin\BusTypeController;
 use App\Http\Controllers\Admin\RouteController;
 use App\Http\Controllers\Admin\ScheduleController;
 use App\Http\Controllers\Admin\UserController;
+use App\Http\Controllers\BaggageController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ManifestController;
 use App\Http\Controllers\PassengerController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\RekapController;
 use App\Http\Controllers\TripController;
 use Illuminate\Support\Facades\Route;
 
@@ -37,6 +39,12 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/trips/{trip}/manifest', [ManifestController::class, 'show'])->name('manifest.show');
     Route::get('/trips/{trip}/manifest/pdf', [ManifestController::class, 'pdf'])->name('manifest.pdf');
 
+    // Bagasi
+    Route::get('/trips/{trip}/baggage', [BaggageController::class, 'index'])->name('baggage.index');
+    Route::post('/trips/{trip}/baggage', [BaggageController::class, 'store'])->name('baggage.store');
+    Route::patch('/trips/{trip}/baggage/{baggage}', [BaggageController::class, 'update'])->name('baggage.update');
+    Route::delete('/trips/{trip}/baggage/{baggage}', [BaggageController::class, 'destroy'])->name('baggage.destroy');
+
     // Admin routes
     Route::middleware('role:admin')->prefix('admin')->name('admin.')->group(function () {
         Route::resource('users', UserController::class)->except(['show', 'create', 'edit']);
@@ -46,7 +54,8 @@ Route::middleware(['auth'])->group(function () {
     });
 
     // Occupancy report
-    Route::get('/rekap', [\App\Http\Controllers\RekapController::class, 'index'])->name('rekap.index')->middleware('role:admin|pengurus');
+    Route::get('/rekap', [RekapController::class, 'index'])->name('rekap.index')->middleware('role:admin|pengurus');
+    Route::get('/rekap/pdf', [RekapController::class, 'pdf'])->name('rekap.pdf')->middleware('role:admin|pengurus');
 });
 
 require __DIR__ . '/auth.php';

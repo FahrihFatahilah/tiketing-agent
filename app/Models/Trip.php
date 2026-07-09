@@ -26,4 +26,9 @@ class Trip extends Model
     {
         return $this->hasMany(Passenger::class);
     }
+
+    public function baggages(): HasMany
+    {
+        return $this->hasMany(Baggage::class);
+    }
 }
