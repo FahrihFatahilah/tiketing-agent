@@ -25,6 +25,9 @@ if [ "$USER_COUNT" = "0" ] || [ -z "$USER_COUNT" ]; then
     php /var/www/artisan db:seed --force
 fi
 
+# Always sync seat layout
+php /var/www/artisan db:seed --class=SeatLayoutSeeder --force
+
 # Create storage link
 php /var/www/artisan storage:link 2>/dev/null || true
 

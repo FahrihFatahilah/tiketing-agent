@@ -44,4 +44,29 @@
     </div>
     <p class="mt-2 text-center text-[11px] text-zinc-400">{{ $passengers->count() }} penumpang</p>
 
+    {{-- Bagasi --}}
+    @if($baggages->count())
+    <div class="mt-6">
+        <p class="text-xs font-semibold uppercase tracking-widest text-zinc-400 mb-3">Bagasi ({{ $baggages->count() }})</p>
+        <div class="card divide-y divide-zinc-100">
+            @foreach($baggages as $b)
+                <div class="px-4 py-3">
+                    <div class="flex items-start justify-between">
+                        <div class="flex-1 min-w-0">
+                            <p class="text-sm font-medium text-zinc-900">{{ $b->jenis_barang }} <span class="text-zinc-400">({{ $b->jumlah }})</span></p>
+                            <p class="text-[11px] text-zinc-500 mt-0.5">
+                                {{ $b->nama_pengirim }} → {{ $b->nama_penerima }}
+                            </p>
+                            @if($b->keterangan)
+                                <p class="text-[11px] text-zinc-400 mt-0.5">{{ $b->keterangan }}</p>
+                            @endif
+                        </div>
+                        <p class="text-[11px] text-zinc-400 shrink-0">{{ $b->inputBy?->name }}</p>
+                    </div>
+                </div>
+            @endforeach
+        </div>
+    </div>
+    @endif
+
 </x-app-layout>

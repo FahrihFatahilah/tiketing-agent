@@ -52,7 +52,43 @@
     </table>
 
     <div class="footer">
-        Dicetak: {{ now()->format('d/m/Y H:i') }} | Total: {{ $passengers->count() }} penumpang
+        Dicetak: {{ now()->format('d/m/Y H:i') }} | Total: {{ $passengers->count() }} penumpang, {{ $baggages->count() }} bagasi
     </div>
+
+    @if($baggages->count())
+    <div style="margin-top: 24px;">
+        <h1>Daftar Bagasi</h1>
+        <table>
+            <thead>
+                <tr>
+                    <th style="width:30px">No</th>
+                    <th>Pengirim</th>
+                    <th>HP Pengirim</th>
+                    <th>Penerima</th>
+                    <th>HP Penerima</th>
+                    <th>Jenis Barang</th>
+                    <th style="width:30px">Jml</th>
+                    <th>Keterangan</th>
+                    <th>Diinput Oleh</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach($baggages as $i => $b)
+                <tr>
+                    <td>{{ $i + 1 }}</td>
+                    <td>{{ $b->nama_pengirim }}</td>
+                    <td>{{ $b->no_hp_pengirim ?: '—' }}</td>
+                    <td>{{ $b->nama_penerima }}</td>
+                    <td>{{ $b->no_hp_penerima ?: '—' }}</td>
+                    <td>{{ $b->jenis_barang }}</td>
+                    <td>{{ $b->jumlah }}</td>
+                    <td>{{ $b->keterangan ?: '' }}</td>
+                    <td>{{ $b->inputBy?->name ?? '—' }}</td>
+                </tr>
+                @endforeach
+            </tbody>
+        </table>
+    </div>
+    @endif
 </body>
 </html>
