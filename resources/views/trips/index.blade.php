@@ -158,7 +158,15 @@
             {{-- Seat map --}}
             <div class="card p-4 mb-4">
                 {{-- Legend --}}
-                <div class="flex items-center justify-center gap-4 mb-4">
+                <div class="flex items-center justify-center gap-3 mb-4 flex-wrap">
+                    <div class="flex items-center gap-1.5">
+                        <div class="h-3 w-3 rounded-sm bg-red-500"></div>
+                        <span class="text-[11px] text-zinc-500">Laki-laki</span>
+                    </div>
+                    <div class="flex items-center gap-1.5">
+                        <div class="h-3 w-3 rounded-sm bg-pink-400"></div>
+                        <span class="text-[11px] text-zinc-500">Perempuan</span>
+                    </div>
                     <div class="flex items-center gap-1.5">
                         <div class="h-3 w-3 rounded-sm bg-zinc-900"></div>
                         <span class="text-[11px] text-zinc-500">Terisi</span>
@@ -190,9 +198,19 @@
                                 {{-- Sleeper kiri --}}
                                 @php $sl = $seatMap['sleeperSeats']->where('posisi_col', 0)->first(); @endphp
                                 @if($sl)
-                                    @php $passenger = $occupiedSeats->get($sl->id); $pd = $passenger ? ['id'=>$passenger->id,'nama'=>$passenger->nama_penumpang,'no_hp'=>$passenger->no_hp,'alamat_naik'=>$passenger->alamat_naik,'alamat_turun'=>$passenger->alamat_turun,'catatan'=>$passenger->catatan,'diinput_oleh'=>$passenger->inputBy?->name,'is_owner'=>$passenger->diinput_oleh===auth()->id()||auth()->user()->hasRole('admin')] : null; @endphp
+                                    @php
+                                        $passenger = $occupiedSeats->get($sl->id);
+                                        $pd = $passenger ? ['id'=>$passenger->id,'nama'=>$passenger->nama_penumpang,'jenis_kelamin'=>$passenger->jenis_kelamin,'no_hp'=>$passenger->no_hp,'alamat_naik'=>$passenger->alamat_naik,'alamat_turun'=>$passenger->alamat_turun,'catatan'=>$passenger->catatan,'diinput_oleh'=>$passenger->inputBy?->name,'is_owner'=>$passenger->diinput_oleh===auth()->id()||auth()->user()->hasRole('admin')] : null;
+                                        $seatColor = !$passenger
+                                            ? 'border-amber-300 bg-amber-50 text-amber-700 hover:border-amber-400'
+                                            : ($passenger->jenis_kelamin === 'L'
+                                                ? 'border-red-500 bg-red-500 text-white'
+                                                : ($passenger->jenis_kelamin === 'P'
+                                                    ? 'border-pink-400 bg-pink-400 text-white'
+                                                    : 'border-zinc-900 bg-zinc-900 text-white'));
+                                    @endphp
                                     <button type="button" @click="openSeat({{ json_encode(['id'=>$sl->id,'nomor'=>$sl->nomor_kursi]) }}, {{ json_encode($pd) }})"
-                                            class="aspect-square w-full rounded-md border text-[10px] font-semibold transition-colors {{ $passenger ? 'border-zinc-900 bg-zinc-900 text-white' : 'border-amber-300 bg-amber-50 text-amber-700 hover:border-amber-400' }}">
+                                            class="aspect-square w-full rounded-md border text-[10px] font-semibold transition-colors {{ $seatColor }}">
                                         {{ $sl->nomor_kursi }}
                                     </button>
                                 @else
@@ -205,9 +223,19 @@
                                 {{-- Sleeper kanan --}}
                                 @php $sr = $seatMap['sleeperSeats']->where('posisi_col', 3)->first(); @endphp
                                 @if($sr)
-                                    @php $passenger = $occupiedSeats->get($sr->id); $pd = $passenger ? ['id'=>$passenger->id,'nama'=>$passenger->nama_penumpang,'no_hp'=>$passenger->no_hp,'alamat_naik'=>$passenger->alamat_naik,'alamat_turun'=>$passenger->alamat_turun,'catatan'=>$passenger->catatan,'diinput_oleh'=>$passenger->inputBy?->name,'is_owner'=>$passenger->diinput_oleh===auth()->id()||auth()->user()->hasRole('admin')] : null; @endphp
+                                    @php
+                                        $passenger = $occupiedSeats->get($sr->id);
+                                        $pd = $passenger ? ['id'=>$passenger->id,'nama'=>$passenger->nama_penumpang,'jenis_kelamin'=>$passenger->jenis_kelamin,'no_hp'=>$passenger->no_hp,'alamat_naik'=>$passenger->alamat_naik,'alamat_turun'=>$passenger->alamat_turun,'catatan'=>$passenger->catatan,'diinput_oleh'=>$passenger->inputBy?->name,'is_owner'=>$passenger->diinput_oleh===auth()->id()||auth()->user()->hasRole('admin')] : null;
+                                        $seatColor = !$passenger
+                                            ? 'border-amber-300 bg-amber-50 text-amber-700 hover:border-amber-400'
+                                            : ($passenger->jenis_kelamin === 'L'
+                                                ? 'border-red-500 bg-red-500 text-white'
+                                                : ($passenger->jenis_kelamin === 'P'
+                                                    ? 'border-pink-400 bg-pink-400 text-white'
+                                                    : 'border-zinc-900 bg-zinc-900 text-white'));
+                                    @endphp
                                     <button type="button" @click="openSeat({{ json_encode(['id'=>$sr->id,'nomor'=>$sr->nomor_kursi]) }}, {{ json_encode($pd) }})"
-                                            class="aspect-square w-full rounded-md border text-[10px] font-semibold transition-colors {{ $passenger ? 'border-zinc-900 bg-zinc-900 text-white' : 'border-amber-300 bg-amber-50 text-amber-700 hover:border-amber-400' }}">
+                                            class="aspect-square w-full rounded-md border text-[10px] font-semibold transition-colors {{ $seatColor }}">
                                         {{ $sr->nomor_kursi }}
                                     </button>
                                 @else
@@ -268,6 +296,7 @@
                                             $pd = $passenger ? [
                                                 'id'           => $passenger->id,
                                                 'nama'         => $passenger->nama_penumpang,
+                                                'jenis_kelamin'=> $passenger->jenis_kelamin,
                                                 'no_hp'        => $passenger->no_hp,
                                                 'alamat_naik'  => $passenger->alamat_naik,
                                                 'alamat_turun' => $passenger->alamat_turun,
@@ -275,13 +304,17 @@
                                                 'diinput_oleh' => $passenger->inputBy?->name,
                                                 'is_owner'     => $passenger->diinput_oleh === auth()->id() || auth()->user()->hasRole('admin'),
                                             ] : null;
+                                            $seatColor = !$passenger
+                                                ? 'border-zinc-200 bg-white text-zinc-600 hover:border-zinc-400 hover:bg-zinc-50'
+                                                : ($passenger->jenis_kelamin === 'L'
+                                                    ? 'border-red-500 bg-red-500 text-white'
+                                                    : ($passenger->jenis_kelamin === 'P'
+                                                        ? 'border-pink-400 bg-pink-400 text-white'
+                                                        : 'border-zinc-900 bg-zinc-900 text-white'));
                                         @endphp
                                         <button type="button"
                                                 @click="openSeat({{ json_encode(['id'=>$seat->id,'nomor'=>$seat->nomor_kursi]) }}, {{ json_encode($pd) }})"
-                                                class="aspect-square w-full rounded-md border text-[11px] font-semibold transition-colors
-                                                    {{ $passenger
-                                                        ? 'border-zinc-900 bg-zinc-900 text-white'
-                                                        : 'border-zinc-200 bg-white text-zinc-600 hover:border-zinc-400 hover:bg-zinc-50' }}">
+                                                class="aspect-square w-full rounded-md border text-[11px] font-semibold transition-colors {{ $seatColor }}">
                                             {{ $seat->nomor_kursi }}
                                         </button>
                                     @else
@@ -314,11 +347,18 @@
                                                 @php
                                                     $seat = $cols[$col];
                                                     $passenger = $occupiedSeats->get($seat->id);
-                                                    $pd = $passenger ? ['id'=>$passenger->id,'nama'=>$passenger->nama_penumpang,'no_hp'=>$passenger->no_hp,'alamat_naik'=>$passenger->alamat_naik,'alamat_turun'=>$passenger->alamat_turun,'catatan'=>$passenger->catatan,'diinput_oleh'=>$passenger->inputBy?->name,'is_owner'=>$passenger->diinput_oleh===auth()->id()||auth()->user()->hasRole('admin')] : null;
+                                                    $pd = $passenger ? ['id'=>$passenger->id,'nama'=>$passenger->nama_penumpang,'jenis_kelamin'=>$passenger->jenis_kelamin,'no_hp'=>$passenger->no_hp,'alamat_naik'=>$passenger->alamat_naik,'alamat_turun'=>$passenger->alamat_turun,'catatan'=>$passenger->catatan,'diinput_oleh'=>$passenger->inputBy?->name,'is_owner'=>$passenger->diinput_oleh===auth()->id()||auth()->user()->hasRole('admin')] : null;
+                                                    $seatColor = !$passenger
+                                                        ? 'border-zinc-200 bg-white text-zinc-600 hover:border-zinc-400 hover:bg-zinc-50'
+                                                        : ($passenger->jenis_kelamin === 'L'
+                                                            ? 'border-red-500 bg-red-500 text-white'
+                                                            : ($passenger->jenis_kelamin === 'P'
+                                                                ? 'border-pink-400 bg-pink-400 text-white'
+                                                                : 'border-zinc-900 bg-zinc-900 text-white'));
                                                 @endphp
                                                 <button type="button"
                                                         @click="openSeat({{ json_encode(['id'=>$seat->id,'nomor'=>$seat->nomor_kursi]) }}, {{ json_encode($pd) }})"
-                                                        class="aspect-square w-full rounded-md border text-[11px] font-semibold transition-colors {{ $passenger ? 'border-zinc-900 bg-zinc-900 text-white' : 'border-zinc-200 bg-white text-zinc-600 hover:border-zinc-400 hover:bg-zinc-50' }}">
+                                                        class="aspect-square w-full rounded-md border text-[11px] font-semibold transition-colors {{ $seatColor }}">
                                                     {{ $seat->nomor_kursi }}
                                                 </button>
                                             @endif
@@ -366,6 +406,10 @@
                                 <span class="text-sm font-medium text-zinc-900" x-text="currentPassenger?.nama"></span>
                             </div>
                             <div class="flex items-center justify-between px-3 py-2.5">
+                                <span class="text-xs text-zinc-400">Jenis Kelamin</span>
+                                <span class="text-sm text-zinc-700" x-text="currentPassenger?.jenis_kelamin === 'L' ? 'Laki-laki' : (currentPassenger?.jenis_kelamin === 'P' ? 'Perempuan' : '—')"></span>
+                            </div>
+                            <div class="flex items-center justify-between px-3 py-2.5">
                                 <span class="text-xs text-zinc-400">No. HP</span>
                                 <span class="text-sm text-zinc-700" x-text="currentPassenger?.no_hp || '—'"></span>
                             </div>
@@ -406,6 +450,14 @@
                             <input type="text" name="nama_penumpang" x-model="form.nama" required placeholder="Nama lengkap" class="input">
                         </div>
                         <div class="space-y-1.5">
+                            <label class="label">Jenis Kelamin</label>
+                            <select name="jenis_kelamin" x-model="form.jenis_kelamin" class="input">
+                                <option value="">Tidak dipilih</option>
+                                <option value="L">Laki-laki</option>
+                                <option value="P">Perempuan</option>
+                            </select>
+                        </div>
+                        <div class="space-y-1.5">
                             <label class="label">No. HP</label>
                             <input type="text" name="no_hp" x-model="form.no_hp" placeholder="08xx..." class="input">
                         </div>
@@ -440,13 +492,13 @@
         return {
             dialogOpen: false, editMode: false,
             currentSeat: null, currentPassenger: null,
-            form: { nama:'', no_hp:'', alamat_naik:'', alamat_turun:'', catatan:'' },
+            form: { nama:'', jenis_kelamin:'', no_hp:'', alamat_naik:'', alamat_turun:'', catatan:'' },
             tripId: {{ $trip->id }},
             openSeat(seat, passenger) {
                 this.currentSeat = seat; this.currentPassenger = passenger; this.editMode = false;
                 this.form = passenger
-                    ? { nama: passenger.nama, no_hp: passenger.no_hp||'', alamat_naik: passenger.alamat_naik||'', alamat_turun: passenger.alamat_turun||'', catatan: passenger.catatan||'' }
-                    : { nama:'', no_hp:'', alamat_naik:'', alamat_turun:'', catatan:'' };
+                    ? { nama: passenger.nama, jenis_kelamin: passenger.jenis_kelamin||'', no_hp: passenger.no_hp||'', alamat_naik: passenger.alamat_naik||'', alamat_turun: passenger.alamat_turun||'', catatan: passenger.catatan||'' }
+                    : { nama:'', jenis_kelamin:'', no_hp:'', alamat_naik:'', alamat_turun:'', catatan:'' };
                 this.dialogOpen = true;
             },
             closeDialog() { this.dialogOpen = false; },

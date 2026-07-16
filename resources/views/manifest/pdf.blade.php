@@ -28,6 +28,7 @@
                 <th style="width:40px">No</th>
                 <th style="width:50px">Kursi</th>
                 <th>Nama Penumpang</th>
+                <th style="width:30px">JK</th>
                 <th style="width:100px">No. HP</th>
                 <th>Naik dari</th>
                 <th>Turun di</th>
@@ -41,6 +42,7 @@
                 <td>{{ $i + 1 }}</td>
                 <td class="seat">{{ $p->seat->nomor_kursi }}</td>
                 <td>{{ $p->nama_penumpang }}</td>
+                <td>{{ $p->jenis_kelamin === 'L' ? 'L' : ($p->jenis_kelamin === 'P' ? 'P' : '—') }}</td>
                 <td>{{ $p->no_hp ?: '—' }}</td>
                 <td>{{ $p->alamat_naik ?: '—' }}</td>
                 <td>{{ $p->alamat_turun ?: '—' }}</td>

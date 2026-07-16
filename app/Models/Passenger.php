@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class Passenger extends Model
 {
     protected $fillable = [
-        'trip_id', 'seat_id', 'nama_penumpang', 'no_hp',
+        'trip_id', 'seat_id', 'nama_penumpang', 'jenis_kelamin', 'no_hp',
         'alamat_naik', 'alamat_turun', 'catatan', 'diinput_oleh',
     ];
 

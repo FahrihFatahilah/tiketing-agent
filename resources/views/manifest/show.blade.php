@@ -23,11 +23,15 @@
         @forelse($passengers as $p)
             <div class="flex items-center gap-3 px-4 py-3">
                 <div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-xs font-semibold
-                            {{ $p->seat->kategori === 'sleeper' ? 'bg-zinc-100 text-zinc-600' : 'bg-zinc-900 text-white' }}">
+                            {{ $p->jenis_kelamin === 'L' ? 'bg-red-500 text-white' : ($p->jenis_kelamin === 'P' ? 'bg-pink-400 text-white' : ($p->seat->kategori === 'sleeper' ? 'bg-zinc-100 text-zinc-600' : 'bg-zinc-900 text-white')) }}">
                     {{ $p->seat->nomor_kursi }}
                 </div>
                 <div class="flex-1 min-w-0">
-                    <p class="text-sm font-medium text-zinc-900 truncate">{{ $p->nama_penumpang }}</p>
+                    <p class="text-sm font-medium text-zinc-900 truncate">{{ $p->nama_penumpang }}
+                        @if($p->jenis_kelamin)
+                            <span class="text-[10px] {{ $p->jenis_kelamin === 'L' ? 'text-red-500' : 'text-pink-400' }}">{{ $p->jenis_kelamin === 'L' ? '♂' : '♀' }}</span>
+                        @endif
+                    </p>
                     <p class="text-[11px] text-zinc-400 truncate">
                         {{ $p->no_hp ?: '—' }}
                         @if($p->alamat_naik) · {{ $p->alamat_naik }}@endif
